@@ -12,10 +12,20 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            WelcomeView()
-                .environmentObject(locationManager)
+            
+            if let location = locationManager.location{
+                Text("La tua posizione e:\(location.longitude),\(location.latitude)")
+            } else {
+                if locationManager.isLoading{
+                    LoadingView()
+                }else{
+                    WelcomeView()
+                        .environmentObject(locationManager)
+                }
+            }
+            
         }
-        .background(.blue)
+        .background(Color(hue: 0.658, saturation: 0.787, brightness: 0.354))
         .preferredColorScheme(.dark)
     }
 }
