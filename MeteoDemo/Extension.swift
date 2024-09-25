@@ -36,3 +36,24 @@ struct RoundedCorner: Shape {
         return Path(path.cgPath)
     }
 }
+
+func getWeatherIcon(for weatherCondition: String) -> String {
+    switch weatherCondition {
+    case "Clear":
+        return "sun.max" // Icona per meteo sereno
+    case "Clouds":
+        return "cloud" // Icona per cielo nuvoloso
+    case "Rain":
+        return "cloud.rain" // Icona per pioggia
+    case "Snow":
+        return "snow" // Icona per neve
+    case "Thunderstorm":
+        return "cloud.bolt.rain" // Icona per temporale
+    case "Drizzle":
+        return "cloud.drizzle" // Icona per pioggerella
+    case "Fog", "Mist", "Haze":
+        return "cloud.fog" // Icona per nebbia
+    default:
+        return "cloud" // Icona di default
+    }
+}

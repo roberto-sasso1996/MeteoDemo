@@ -17,7 +17,9 @@ struct WeatherView : View {
                 VStack(alignment: .leading , spacing: 5){
                     Text(weather.name).bold().font(.title)
                     
-                    Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute()))")
+                    //Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute()))")
+                       // .fontWeight(.light)
+                    Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute().locale(Locale(identifier: "it_IT"))))")
                         .fontWeight(.light)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -25,20 +27,41 @@ struct WeatherView : View {
                 Spacer()
                 
                 VStack{
-                    HStack{
-                        VStack(spacing:20){
-                            Image(systemName: "sun.max")
+                    //HStack{
+                        //VStack(spacing:20){
+                            //Image(systemName: "sun.max")
+                                //.font(.system(size: 40))
+                            
+                            //Text(weather.weather[0].main)
+                        //}.frame(width: 150 , alignment: .leading)
+                        
+                        //Spacer()
+                        
+                        //Text(
+                            //weather.main.feelsLike.roundDable() + "°"
+                        //).font(.system(size: 90)).fontWeight(.bold).padding()
+                    //}
+                    
+                    HStack {
+                        VStack(spacing: 20) {
+                            // Usa la funzione per selezionare l'icona in base alla descrizione del meteo
+                            Image(systemName: getWeatherIcon(for: weather.weather[0].main))
                                 .font(.system(size: 40))
                             
+                            // Mostra la descrizione del meteo
                             Text(weather.weather[0].main)
-                        }.frame(width: 150 , alignment: .leading)
+                        }
+                        .frame(width: 150, alignment: .leading)
                         
                         Spacer()
                         
-                        Text(
-                            weather.main.feelsLike.roundDable() + "°"
-                        ).font(.system(size: 90)).fontWeight(.bold).padding()
+                        // Mostra la temperatura percepita arrotondata
+                        Text(weather.main.feelsLike.roundDable() + "°")
+                            .font(.system(size: 90))
+                            .fontWeight(.bold)
+                            .padding()
                     }
+                    
                     Spacer().frame(height: 80)
                     
                     AsyncImage(url : URL(string: "https://cdn.pixabay.com/photo/2022/07/04/12/48/buildings-7301094_1280.png")) {
