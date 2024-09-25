@@ -63,6 +63,33 @@ struct WeatherView : View {
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
             
+            VStack {
+                Spacer()
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Condizioni Climatiche")
+                        .bold()
+                        .padding(.bottom)
+                    
+                    HStack {
+                        WeatherRow(logo: "thermometer", name: "Min Temp.", value: (weather.main.tempMin.roundDable() + ("°")))
+                        Spacer()
+                        WeatherRow(logo: "thermometer", name: "Max Temp.", value: (weather.main.tempMax
+                            .roundDable() + "°"))
+                    }
+                    
+                    HStack {
+                        WeatherRow(logo: "wind", name: "Vento", value: (weather.wind.speed.roundDable2() + " m/s"))
+                        Spacer()
+                        WeatherRow(logo: "humidity.fill", name: "Umidità", value: "\(weather.main.humidity.roundDable2())%")
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .padding(.bottom, 20)
+                .foregroundColor(Color(hue: 0.656, saturation: 0.787, brightness: 0.354))
+                .background(.white)
+                .cornerRadius(20, corners: [.topLeft, .topRight])
+            }
             
         }
         .edgesIgnoringSafeArea(.bottom)
