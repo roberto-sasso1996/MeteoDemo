@@ -1,79 +1,113 @@
-//
-//  SearchView.swift
-//  MeteoDemo
-//
-//  Created by Christian Soriani on 18/10/24.
-//
-
 import SwiftUI
 
 struct SearchView: View {
-    // Binding per poter chiudere la pagina di ricerca
     @Binding var showSearchPage: Bool
-    @State private var searchText: String = "" // Testo della barra di ricerca
-    @State private var selectedItem: String? = nil // Variabile per l'elemento selezionato
-    
-    
-    // Lista di elementi da visualizzare
-    let allItems = ["Roma", "Milano", "Napoli", "Torino", "Firenze", "Bologna", "Palermo", "Genova", "Venezia"]
-    
-    // Computed property per filtrare gli elementi
-    var filteredItems: [String] {
+    @State private var searchText: String = ""
+    @State private var selectedItem: City? = nil
+    @State private var cities: [City] = []
+    @State private var isLoading: Bool = true
+    var cityManager = CityManager()
+    var onCitySelected: (City) -> Void
+
+    var filteredItems: [City] {
         if searchText.isEmpty {
-            return allItems // Mostra tutti gli elementi se non c'è testo di ricerca
+            return cities
         } else {
-            return allItems.filter { $0.localizedCaseInsensitiveContains(searchText) } // Filtra in base al testo
+            return cities.filter { $0.nome.localizedCaseInsensitiveContains(searchText) }
         }
     }
-    
+
     var body: some View {
         NavigationView {
             VStack {
-                // Barra di ricerca
                 HStack {
-                    TextField("Cerca qualcosa...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle()) // Stile della barra di ricerca
+                    TextField("Cerca comune...", text: $searchText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding()
-                    
-                    // Pulsante per chiudere la pagina
+
                     Button(action: {
-                        showSearchPage = false // Chiude la pagina di ricerca
+                        showSearchPage = false
                     }) {
                         Text("Annulla")
                             .foregroundColor(.blue)
                     }
                     .padding(.trailing)
                 }
-                
-                // Lista filtrata con gestione clic
-                List(filteredItems, id: \.self) { item in
-                    Text(item)
-                        .onTapGesture {
-                            // Gestione del clic su una riga
-                            selectedItem = item
-                            handleItemClick(item)
-                        }
+
+                if isLoading {
+                    ProgressView("Caricamento comuni...")
+                        .padding()
+                } else {
+                    List(filteredItems, id: \.id) { item in
+                        Text(item.nome)
+                            .onTapGesture {
+                                selectedItem = item
+                                handleItemClick(item)
+                            }
+                    }
+                    .listStyle(PlainListStyle())
                 }
-                .listStyle(PlainListStyle()) // Stile della lista
-                
-                Spacer() // Riempie lo spazio rimanente
+
+                Spacer()
             }
-            .navigationTitle("Ricerca")
+            .navigationTitle("Ricerca Comune")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                Task {
+                    await fetchCities() // Carica le città quando la vista appare
+                }
+            }
         }
+    }
+
+    func fetchCities() async {
+        isLoading = true
+        if let cachedCities = getCachedCities() {
+            // Se ci sono città nella cache, utilizzale
+            cities = cachedCities
+            isLoading = false
+        } else {
+            // Altrimenti, carica da API
+            do {
+                cities = try await cityManager.getCities()
+                cacheCities(cities) // Cache i nuovi comuni
+            } catch {
+                print("Errore nel caricamento delle città: \(error)")
+                cities = []
+            }
+            isLoading = false
+        }
+    }
+
+    // Funzioni per la cache
+    func cacheCities(_ cities: [City]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(cities) {
+            UserDefaults.standard.set(encoded, forKey: "cachedCities")
+        }
+    }
+
+    func getCachedCities() -> [City]? {
+        if let savedCitiesData = UserDefaults.standard.data(forKey: "cachedCities") {
+            let decoder = JSONDecoder()
+            if let loadedCities = try? decoder.decode([City].self, from: savedCitiesData) {
+                return loadedCities
+            }
+        }
+        return nil
+    }
+
+    func handleItemClick(_ item: City) {
+        onCitySelected(item)
+        showSearchPage = false
     }
 }
 
-// Funzione per gestire il clic su un elemento
-    func handleItemClick(_ item: String) {
-        
-    }
 
-// Anteprima della SearchView per facilitare il debugging
 struct SearchView_Previews: PreviewProvider {
     @State static var showSearchPage = true
     
     static var previews: some View {
-        SearchView(showSearchPage: $showSearchPage)
+        SearchView(showSearchPage: $showSearchPage, onCitySelected: { _ in })
     }
 }
