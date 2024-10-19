@@ -74,13 +74,6 @@
             ReferencedContainer = "container:MeteoDemo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <EnvironmentVariables>
-         <EnvironmentVariable
-            key = "weatherApiKey"
-            value = "df14a174b15d73afa34f1a73fc58600c"
-            isEnabled = "YES">
-         </EnvironmentVariable>
-      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
