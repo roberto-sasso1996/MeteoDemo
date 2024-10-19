@@ -9,8 +9,11 @@ import Foundation
 import CoreLocation
 
 class WeatherManager{
+    
+    let apiKey = "" //TODO insert apikey
+    
     func getCurrentWeather(latitude: CLLocationDegrees , longitude: CLLocationDegrees) async throws -> ResponseBody{
-        guard let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\("ApiKey")") else { fatalError("Missing Url")}
+        guard let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?lat=\(latitude)&lon=\(longitude)&appid=\(apiKey)") else { fatalError("Missing Url")}
         
         let urlRequest = URLRequest(url: url)
         
@@ -21,6 +24,19 @@ class WeatherManager{
         let decodeData = try JSONDecoder().decode(ResponseBody.self, from: data)
         return decodeData
     }
+    
+    func getCurrentWeather(city: String) async throws -> ResponseBody{
+            guard let url = URL(string: "https://api.openweathermap.org/data/2.5/weather?q=\(city)&appid=\(apiKey)") else { fatalError("Missing Url")}
+            
+            let urlRequest = URLRequest(url: url)
+            
+            let (data , response) = try await URLSession.shared.data(for: urlRequest)
+            
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { fatalError("Error fetching data")}
+            
+            let decodeData = try JSONDecoder().decode(ResponseBody.self, from: data)
+            return decodeData
+        }
 }
 
 // Modello del corpo della risposta dell’API OpenWeather

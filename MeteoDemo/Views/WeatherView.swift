@@ -1,61 +1,51 @@
-//
-//  WeatherView.swift
-//  MeteoDemo
-//
-//  Created by MacBook Pro  on 25/09/24.
-//
-
 import SwiftUI
 
-
 struct WeatherView : View {
-    var weather: ResponseBody
+    @State var weather: ResponseBody
+    @State private var showSearchPage: Bool = false
+    var weatherManager = WeatherManager()
     
     var body: some View {
         ZStack(alignment: .leading){
             VStack{
-                VStack(alignment: .leading , spacing: 5){
-                    Text(weather.name).bold().font(.title)
-                    
-                    //Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute()))")
-                       // .fontWeight(.light)
-                    Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute().locale(Locale(identifier: "it_IT"))))")
-                        .fontWeight(.light)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(weather.name).bold().font(.title)
+                            Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute().locale(Locale(identifier: "it_IT"))))")
+                                .fontWeight(.light)
+                        }
+                        
+                        Spacer() // Spinge l'icona verso destra
+
+                        // Icona lente di ingrandimento
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 35))
+                            .bold()
+                            .foregroundColor(.white)
+                            .onTapGesture {
+                                withAnimation {
+                                    showSearchPage = true
+                                }
+                            }
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Spacer()
                 
                 VStack{
-                    //HStack{
-                        //VStack(spacing:20){
-                            //Image(systemName: "sun.max")
-                                //.font(.system(size: 40))
-                            
-                            //Text(weather.weather[0].main)
-                        //}.frame(width: 150 , alignment: .leading)
-                        
-                        //Spacer()
-                        
-                        //Text(
-                            //weather.main.feelsLike.roundDable() + "°"
-                        //).font(.system(size: 90)).fontWeight(.bold).padding()
-                    //}
-                    
                     HStack {
                         VStack(spacing: 20) {
-                            // Usa la funzione per selezionare l'icona in base alla descrizione del meteo
                             Image(systemName: getWeatherIcon(for: weather.weather[0].main))
                                 .font(.system(size: 40))
                             
-                            // Mostra la descrizione del meteo
                             Text(weather.weather[0].main)
                         }
                         .frame(width: 150, alignment: .leading)
                         
                         Spacer()
                         
-                        // Mostra la temperatura percepita arrotondata
                         Text(weather.main.feelsLike.roundDable() + "°")
                             .font(.system(size: 90))
                             .fontWeight(.bold)
@@ -81,7 +71,7 @@ struct WeatherView : View {
                         Spacer()
                     }
                     
-                }.frame(maxWidth: . infinity)
+                }.frame(maxWidth: .infinity)
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -94,10 +84,9 @@ struct WeatherView : View {
                         .padding(.bottom)
                     
                     HStack {
-                        WeatherRow(logo: "thermometer", name: "Min Temp.", value: (weather.main.tempMin.roundDable() + ("°")))
+                        WeatherRow(logo: "thermometer", name: "Min Temp.", value: (weather.main.tempMin.roundDable() + "°"))
                         Spacer()
-                        WeatherRow(logo: "thermometer", name: "Max Temp.", value: (weather.main.tempMax
-                            .roundDable() + "°"))
+                        WeatherRow(logo: "thermometer", name: "Max Temp.", value: (weather.main.tempMax.roundDable() + "°"))
                     }
                     
                     HStack {
@@ -118,7 +107,27 @@ struct WeatherView : View {
         .edgesIgnoringSafeArea(.bottom)
         .background(Color(hue: 0.658, saturation: 0.787, brightness: 0.354))
         .preferredColorScheme(.dark)
+        .fullScreenCover(isPresented: $showSearchPage) {
+            SearchView(showSearchPage: $showSearchPage, onCitySelected: { city in
+                Task {
+                    await fetchWeather(for: city.nome)
+                }
+            })
+        }
     }
+    
+    // Funzione asincrona per ottenere i dati meteo per la città selezionata
+    func fetchWeather(for city: String) async {
+        do {
+            let newWeather = try await weatherManager.getCurrentWeather(city: city)
+            DispatchQueue.main.async {
+                weather = newWeather
+            }
+        } catch {
+            print("Errore nel recupero dei dati: \(error)")
+        }
+    }
+    
 }
 
 struct WeatherView_Previews: PreviewProvider{
