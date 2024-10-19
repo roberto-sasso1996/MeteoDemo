@@ -11,36 +11,38 @@ import SwiftUI
 struct WeatherView : View {
     var weather: ResponseBody
     
+    @State private var showSearchPage: Bool = false
+    
     var body: some View {
         ZStack(alignment: .leading){
             VStack{
-                VStack(alignment: .leading , spacing: 5){
-                    Text(weather.name).bold().font(.title)
-                    
-                    //Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute()))")
-                       // .fontWeight(.light)
-                    Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute().locale(Locale(identifier: "it_IT"))))")
-                        .fontWeight(.light)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(weather.name).bold().font(.title)
+                            Text("Oggi, \(Date().formatted(.dateTime.month().day().hour().minute().locale(Locale(identifier: "it_IT"))))")
+                                .fontWeight(.light)
+                        }
+                        
+                        Spacer() // Spinge l'icona verso destra
+
+                        // Icona lente di ingrandimento
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 35))
+                            .bold()
+                            .foregroundColor(.white)
+                            .onTapGesture {
+                                withAnimation {
+                                    showSearchPage = true
+                                }
+                            }
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Spacer()
                 
                 VStack{
-                    //HStack{
-                        //VStack(spacing:20){
-                            //Image(systemName: "sun.max")
-                                //.font(.system(size: 40))
-                            
-                            //Text(weather.weather[0].main)
-                        //}.frame(width: 150 , alignment: .leading)
-                        
-                        //Spacer()
-                        
-                        //Text(
-                            //weather.main.feelsLike.roundDable() + "°"
-                        //).font(.system(size: 90)).fontWeight(.bold).padding()
-                    //}
                     
                     HStack {
                         VStack(spacing: 20) {
@@ -118,8 +120,15 @@ struct WeatherView : View {
         .edgesIgnoringSafeArea(.bottom)
         .background(Color(hue: 0.658, saturation: 0.787, brightness: 0.354))
         .preferredColorScheme(.dark)
+        // Modale che mostra la pagina di ricerca quando showSearchPage è true
+                .fullScreenCover(isPresented: $showSearchPage) {
+                    SearchView(showSearchPage: $showSearchPage)
+                }
     }
+    
 }
+
+
 
 struct WeatherView_Previews: PreviewProvider{
     static var previews: some View{
